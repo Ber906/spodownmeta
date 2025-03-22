@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200px" height="200px" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <title>Default Profile Image</title>
+  <defs>
+    <linearGradient x1="0%" y1="0%" x2="100%" y2="100%" id="gradient">
+      <stop stop-color="#5B4FFF" offset="0%"></stop>
+      <stop stop-color="#34B7FB" offset="100%"></stop>
+    </linearGradient>
+  </defs>
+  <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+    <circle fill="url(#gradient)" cx="100" cy="100" r="100"></circle>
+    <path d="M100,150 C130.4,150 155,136.6 155,120 C155,103.4 130.4,90 100,90 C69.6,90 45,103.4 45,120 C45,136.6 69.6,150 100,150 Z" fill="#FFFFFF"></path>
+    <circle fill="#FFFFFF" cx="100" cy="70" r="30"></circle>
+  </g>
+</svg>

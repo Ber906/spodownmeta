@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SpoDown - Spotify Music Downloader</title>
+    <meta name="description" content="Download your favorite songs, albums, and playlists from Spotify with SpoDown.">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎵</text></svg>">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-music me-2 animate-pulse"></i>Spo<span>Down</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if current_user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.path == url_for('index') %}active{% endif %}" href="{{ url_for('index') }}">
+                                <i class="fas fa-home me-2"></i> Home
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.path == url_for('downloads') %}active{% endif %}" href="{{ url_for('downloads') }}">
+                                <i class="fas fa-history me-2"></i> My Downloads
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.path == url_for('chat') %}active{% endif %}" href="{{ url_for('chat') }}">
+                                <i class="fas fa-comments me-2"></i> Chat
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.path == url_for('users') %}active{% endif %}" href="{{ url_for('users') }}">
+                                <i class="fas fa-users me-2"></i> Users
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <div class="d-inline-block position-relative me-1">
+                                    <img src="{{ current_user.get_profile_image_url() }}" class="avatar-xs rounded-circle me-1" alt="{{ current_user.username }}">
+                                    {% if current_user.last_active and 'T' in current_user.last_active %}
+                                        <span class="position-absolute bottom-0 end-0 bg-success rounded-circle p-1" style="width: 8px; height: 8px;"></span>
+                                    {% endif %}
+                                </div>
+                                {{ current_user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+                                <li>
+                                    <a class="dropdown-item" href="{{ url_for('profile') }}">
+                                        <i class="fas fa-id-card me-2"></i> My Profile
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ url_for('edit_profile') }}">
+                                        <i class="fas fa-edit me-2"></i> Edit Profile
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                                        <i class="fas fa-sign-out-alt me-2"></i> Logout
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.path == url_for('auth.signin') %}active{% endif %}" href="{{ url_for('auth.signin') }}">
+                                <i class="fas fa-sign-in-alt me-2"></i> Sign In
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.path == url_for('auth.signup') %}active{% endif %}" href="{{ url_for('auth.signup') }}">
+                                <i class="fas fa-user-plus me-2"></i> Sign Up
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        <div class="d-flex align-items-center">
+                            {% if category == 'success' %}
+                                <i class="fas fa-check-circle me-2"></i>
+                            {% elif category == 'danger' or category == 'error' %}
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                            {% elif category == 'warning' %}
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                            {% elif category == 'info' %}
+                                <i class="fas fa-info-circle me-2"></i>
+                            {% endif %}
+                            <div>{{ message }}</div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer class="footer mt-auto py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-5">
+                    <h5 class="mb-3">
+                        <i class="fas fa-music me-2"></i>Spo<span class="text-primary">Down</span>
+                    </h5>
+                    <p class="mb-3">Your personal music library builder. Download your favorite Spotify tracks, albums, and playlists for offline enjoyment.</p>
+                    <div class="mt-4 mb-4 mb-md-0">
+                        <div class="social-icons">
+                            <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                            <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                            <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                            <a href="#" aria-label="GitHub"><i class="fab fa-github"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <h5 class="mb-3">Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{{ url_for('index') }}"><i class="fas fa-angle-right me-2"></i>Home</a></li>
+                        {% if current_user.is_authenticated %}
+                            <li><a href="{{ url_for('downloads') }}"><i class="fas fa-angle-right me-2"></i>My Downloads</a></li>
+                            <li><a href="{{ url_for('chat') }}"><i class="fas fa-angle-right me-2"></i>Chat</a></li>
+                            <li><a href="{{ url_for('users') }}"><i class="fas fa-angle-right me-2"></i>Users</a></li>
+                        {% else %}
+                            <li><a href="{{ url_for('auth.signin') }}"><i class="fas fa-angle-right me-2"></i>Sign In</a></li>
+                            <li><a href="{{ url_for('auth.signup') }}"><i class="fas fa-angle-right me-2"></i>Sign Up</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div class="col-md-4 col-6">
+                    <h5 class="mb-3">About SpoDown</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#"><i class="fas fa-angle-right me-2"></i>How It Works</a></li>
+                        <li><a href="#"><i class="fas fa-angle-right me-2"></i>Terms of Service</a></li>
+                        <li><a href="#"><i class="fas fa-angle-right me-2"></i>Privacy Policy</a></li>
+                        <li><a href="#"><i class="fas fa-angle-right me-2"></i>Contact Us</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <div class="row py-3">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2025 SpoDown. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">Made with <i class="fas fa-heart text-danger animate-pulse"></i> for music lovers</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Back to top button -->
+    <button id="back-to-top" class="btn btn-spotify back-to-top" aria-label="Back to top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+    
+    <!-- Background Music Player -->
+    <div class="bg-music-player">
+        <audio id="background-music" loop preload="metadata">
+            <source src="{{ url_for('static', filename='music/cute-happy.mp3') }}" type="audio/mp3">
+            <source src="{{ url_for('static', filename='music/happy-upbeat.mp3') }}" type="audio/mp3">
+            Your browser does not support the audio element.
+        </audio>
+        <button id="music-toggle" class="btn btn-spotify music-toggle" aria-label="Toggle Music" data-bs-toggle="tooltip" data-bs-placement="right" title="Toggle Background Music">
+            <i class="fas fa-volume-up"></i>
+        </button>
+        <select id="music-selector" class="form-select music-selector" aria-label="Select Background Music">
+            <option value="{{ url_for('static', filename='music/cute-happy.mp3') }}" selected>Cute Happy</option>
+            <option value="{{ url_for('static', filename='music/happy-upbeat.mp3') }}">Happy Upbeat</option>
+            <option value="{{ url_for('static', filename='music/lost-sky-fearless.mp3') }}">Lost Sky - Fearless</option>
+        </select>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    <script>
+        // Back to top button
+        const backToTopButton = document.getElementById('back-to-top');
+        
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                backToTopButton.style.display = 'flex';
+            } else {
+                backToTopButton.style.display = 'none';
+            }
+        });
+        
+        backToTopButton.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // Initialize tooltips
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+        
+        // Background Music Player
+        document.addEventListener('DOMContentLoaded', function() {
+            const backgroundMusic = document.getElementById('background-music');
+            const musicToggle = document.getElementById('music-toggle');
+            const musicSelector = document.getElementById('music-selector');
+            
+            // Check if music playback was previously set in local storage
+            const musicMuted = localStorage.getItem('musicMuted') === 'true';
+            const savedVolume = localStorage.getItem('musicVolume') || 0.2;
+            const savedTrack = localStorage.getItem('selectedTrack');
+            
+            // Set initial volume (lower default volume)
+            backgroundMusic.volume = parseFloat(savedVolume);
+            backgroundMusic.muted = musicMuted;
+            
+            if (musicMuted) {
+                musicToggle.classList.add('muted');
+            }
+            
+            // Set the previously selected track if available
+            if (savedTrack) {
+                // Find and select the option
+                for (let i = 0; i < musicSelector.options.length; i++) {
+                    if (musicSelector.options[i].value === savedTrack) {
+                        musicSelector.selectedIndex = i;
+                        break;
+                    }
+                }
+                
+                // Set the audio source
+                backgroundMusic.src = savedTrack;
+            }
+            
+            // Handle music selection change
+            musicSelector.addEventListener('change', function() {
+                const wasPlaying = !backgroundMusic.paused;
+                const selectedTrack = this.value;
+                
+                // Save selection to localStorage
+                localStorage.setItem('selectedTrack', selectedTrack);
+                
+                // Update audio source
+                backgroundMusic.src = selectedTrack;
+                
+                // Resume playback if it was playing
+                if (wasPlaying) {
+                    backgroundMusic.play();
+                }
+                
+                // Show a small notification
+                showToast('Music changed to ' + this.options[this.selectedIndex].text);
+            });
+            
+            // Show music selector on hover
+            musicToggle.addEventListener('mouseenter', function() {
+                musicSelector.style.opacity = '1';
+                musicSelector.style.transform = 'translateY(0)';
+            });
+            
+            // Hide music selector when mouse leaves the area
+            document.querySelector('.bg-music-player').addEventListener('mouseleave', function() {
+                if (window.innerWidth > 768) { // Only on desktop
+                    musicSelector.style.opacity = '0';
+                    musicSelector.style.transform = 'translateY(10px)';
+                }
+            });
+            
+            // Toggle music on button click
+            musicToggle.addEventListener('click', function() {
+                if (backgroundMusic.paused) {
+                    backgroundMusic.play().then(() => {
+                        backgroundMusic.muted = false;
+                        musicToggle.classList.remove('muted');
+                        localStorage.setItem('musicMuted', 'false');
+                        showToast('Music is now playing');
+                    }).catch(err => {
+                        console.error('Error playing audio:', err);
+                        showToast('Could not play audio: ' + err.message);
+                    });
+                } else {
+                    if (backgroundMusic.muted) {
+                        backgroundMusic.muted = false;
+                        musicToggle.classList.remove('muted');
+                        localStorage.setItem('musicMuted', 'false');
+                        showToast('Music unmuted');
+                    } else {
+                        backgroundMusic.muted = true;
+                        musicToggle.classList.add('muted');
+                        localStorage.setItem('musicMuted', 'true');
+                        showToast('Music muted');
+                    }
+                }
+            });
+            
+            // Simple toast notification function
+            function showToast(message) {
+                const toast = document.createElement('div');
+                toast.className = 'toast-notification';
+                toast.textContent = message;
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.classList.add('show');
+                }, 10);
+                
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => {
+                        document.body.removeChild(toast);
+                    }, 300);
+                }, 2000);
+            }
+            
+            // Handle page visibility change to stop music when tab is not active
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden && !backgroundMusic.paused && !backgroundMusic.muted) {
+                    // Store the state to resume when tab is active again
+                    localStorage.setItem('wasPlaying', 'true');
+                    backgroundMusic.pause();
+                } else if (!document.hidden && localStorage.getItem('wasPlaying') === 'true' 
+                          && backgroundMusic.paused && !backgroundMusic.muted) {
+                    backgroundMusic.play().catch(err => console.log('Auto-resume failed:', err));
+                    localStorage.removeItem('wasPlaying');
+                }
+            });
+        });
+    </script>
+
+    <style>
+        .avatar-xs {
+            width: 24px;
+            height: 24px;
+            object-fit: cover;
+        }
+        
+        .back-to-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--primary-color);
+            color: var(--dark-color);
+            border: none;
+            z-index: 99;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .back-to-top:hover {
+            transform: translateY(-5px);
+            background-color: var(--primary-hover);
+        }
+        
+        @media (max-width: 768px) {
+            .back-to-top {
+                bottom: 15px;
+                right: 15px;
+                width: 40px;
+                height: 40px;
+            }
+            
+            .music-toggle {
+                bottom: 15px;
+                left: 15px;
+                width: 40px;
+                height: 40px;
+            }
+        }
+        
+        /* Background Music Player Styles */
+        .bg-music-player {
+            position: fixed;
+            z-index: 99;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .music-toggle {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--primary-color);
+            color: var(--dark-color);
+            border: none;
+            z-index: 99;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .music-toggle:hover {
+            transform: translateY(-5px);
+            background-color: var(--primary-hover);
+        }
+        
+        .music-toggle.muted i::before {
+            content: "\f6a9"; /* fa-volume-mute */
+        }
+        
+        .music-selector {
+            position: fixed;
+            bottom: 75px;
+            left: 20px;
+            width: 160px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            background-color: var(--dark-color);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 0.85rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 98;
+        }
+        
+        .music-selector:focus {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Toast Notification */
+        .toast-notification {
+            position: fixed;
+            bottom: 80px;
+            left: 20px;
+            background-color: var(--dark-color);
+            color: var(--text-color);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            z-index: 9999;
+        }
+        
+        .toast-notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Responsive adjustments for the music player */
+        @media (max-width: 768px) {
+            .music-selector {
+                bottom: 65px;
+                left: 15px;
+                width: 140px;
+                font-size: 0.8rem;
+            }
+            
+            .toast-notification {
+                bottom: 70px;
+                left: 15px;
+                font-size: 0.8rem;
+                padding: 6px 12px;
+            }
+        }
+    </style>
+</body>
+</html>

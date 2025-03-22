@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="app-container">
+    <div class="downloads-header">
+        <h2>Your Download History</h2>
+        <p class="text-muted mb-5">Track and manage all your downloaded music from Spotify</p>
+        
+        <div class="stats-cards">
+            <div class="stat-card">
+                <div class="stat-number">{{ downloads|length }}</div>
+                <div class="stat-label">Total Downloads</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ recent_downloads|length }}</div>
+                <div class="stat-label">Recent Downloads (24h)</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="downloads-list mt-5">
+        {% if downloads %}
+            <div class="row g-4">
+                {% for download in downloads %}
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="track-icon me-3">
+                                    <i class="fas fa-music"></i>
+                                </div>
+                                <h5 class="card-title mb-0">{{ download.track_name }}</h5>
+                            </div>
+                            <p class="card-text text-muted">
+                                <i class="far fa-calendar-alt me-2"></i>{{ download.download_date }}
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <a href="{{ download.spotify_url }}" target="_blank" class="btn btn-sm btn-outline-spotify">
+                                    <i class="fab fa-spotify me-1"></i> View on Spotify
+                                </a>
+                                <!-- Display status if available -->
+                                <span class="badge {{ 'bg-success' if download.get('status') == 'Completed' else 'bg-warning' }}">
+                                    {{ download.get('status', 'Pending...') }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="text-center mt-5">
+                <a href="{{ url_for('index') }}" class="btn btn-spotify">
+                    <i class="fas fa-plus me-2"></i>Download More Music
+                </a>
+            </div>
+        {% else %}
+            <div class="no-downloads text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-music fa-5x text-muted"></i>
+                </div>
+                <h3 class="mb-3">No Downloads Yet</h3>
+                <p class="text-muted mb-4">You haven't downloaded any tracks yet. Start building your music collection now!</p>
+                <a href="{{ url_for('index') }}" class="btn btn-spotify btn-lg">
+                    <i class="fas fa-download me-2"></i>Start Downloading
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

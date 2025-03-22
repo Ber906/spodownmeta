@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4 class="mb-0">Users</h4>
+                <small class="text-muted">Browse all users in the SpoDown community</small>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for user in users %}
+                    <div class="col-md-4 col-lg-3 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <div class="mb-3">
+                                    <img src="{{ user.get_profile_image_url() }}" alt="{{ user.username }}" 
+                                         class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                                </div>
+                                <h5 class="card-title">{{ user.username }}</h5>
+                                <p class="text-muted">
+                                    {% if user.last_active and (user.last_active|string)[:10] == today %}
+                                        <span class="badge bg-success">Online Today</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Last seen: {{ user.last_active[:10] if user.last_active else 'Never' }}</span>
+                                    {% endif %}
+                                </p>
+                                <a href="{{ url_for('user_profile', user_id=user.id) }}" class="btn btn-outline-primary btn-sm">
+                                    View Profile
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

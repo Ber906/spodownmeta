@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <!-- Profile Information -->
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">My Profile</h4>
+            </div>
+            <div class="card-body">
+                <div class="profile-container">
+                    <div class="profile-image-container">
+                        <img src="{{ user.get_profile_image_url() }}" alt="{{ user.username }}" class="profile-image">
+                    </div>
+                    
+                    <div class="profile-details">
+                        <h2 class="profile-username">{{ user.username }}</h2>
+                        <p class="profile-email">{{ user.email }}</p>
+                        
+                        {% if user.bio %}
+                            <p class="profile-bio">{{ user.bio }}</p>
+                        {% else %}
+                            <p class="profile-bio text-muted">No bio yet. Tell us about yourself!</p>
+                        {% endif %}
+                        
+                        <a href="{{ url_for('edit_profile') }}" class="btn btn-primary edit-profile-btn mt-3">
+                            <i class="fas fa-edit me-2"></i>Edit Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Downloads -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h4 class="mb-0">Recent Downloads</h4>
+            </div>
+            <div class="card-body">
+                {% if user.get_downloads() %}
+                    <div class="list-group">
+                        {% for download in user.get_downloads()[:5] %}
+                            <div class="list-group-item bg-dark text-light border-secondary">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="fas fa-music me-2"></i>
+                                        <span>{{ download.track_name }}</span>
+                                    </div>
+                                    <small class="text-muted">{{ download.download_date.split('T')[0] }}</small>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    {% if user.get_downloads()|length > 5 %}
+                        <div class="text-center mt-3">
+                            <a href="{{ url_for('downloads') }}" class="btn btn-outline-primary btn-sm">
+                                View All Downloads
+                            </a>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <p class="text-muted">No downloads yet. Start downloading your favorite Spotify tracks!</p>
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">
+                        <i class="fas fa-download me-2"></i>Download Music
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
